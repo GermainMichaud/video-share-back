@@ -12,6 +12,7 @@ declare module 'express-session' {
     expires_in: number;
     refresh_expires_in: number;
     provider: ProvidersName;
+    redirect_client_url: string;
   }
 }
 
