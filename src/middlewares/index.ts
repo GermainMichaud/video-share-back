@@ -10,7 +10,7 @@ const loadMiddlewares = (app: Application) => {
   app.use(helmet());
   app.use(
     cors({
-      origin: '*',
+      origin: ['*', ...config.get<string>('origins').split(',')],
       credentials: true,
     }),
   );
