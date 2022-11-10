@@ -37,7 +37,11 @@ const mockResponse = {
 describe('OAuth Controller', () => {
   it('should connect oauth', async () => {
     const spyGetOauthUrl = vi.spyOn(oauthService, 'getRedirectUrl');
-    const mockedRequest = { ...mockRequest, params: { provider: 'tiktok' } };
+    const mockedRequest = {
+      ...mockRequest,
+      params: { provider: 'tiktok' },
+      query: { redirect_client_url: '/' },
+    };
     // eslint-disable-next-line @typescript-eslint/await-thenable
     await connectOauthHandler(mockedRequest, mockResponse);
     expect(spyGetOauthUrl).toHaveBeenCalledWith('tiktok', 'csrf_state');
