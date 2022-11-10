@@ -31,7 +31,7 @@ export const callbackOauthHandler = async (
 ): Promise<void> => {
   const { code, scopes, state } = req.query;
   const { csrfState } = req.cookies;
-  console.log('state', state, 'csrfState', csrfState);
+
   if (state !== csrfState) {
     res.status(400).send('Invalid state');
     return;
