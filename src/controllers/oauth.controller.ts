@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { getUserInfo } from 'services/user.service';
 
 import { OauthCallbackRequest, OauthRequest } from '../schemas/oauth.schema';
 import {
@@ -11,13 +12,20 @@ import { ProvidersName } from '../utils/providers';
 import { getCsrf } from '../utils/utils';
 
 export const connectOauthHandler = (
-  req: Request<OauthRequest['params']>,
+  req: Request<
+    OauthRequest['params'],
+    Record<string, never>,
+    Record<string, never>,
+    { redirect_client_url: string }
+  >,
   res: Response,
 ): void => {
+  const { redirect_client_url } = req.query;
   const csrfState = getCsrf();
   res.cookie('csrfState', csrfState, { maxAge: 60000 });
+  req.session.redirect_client_url = redirect_client_url;
 
-  res.redirect(getRedirectUrl(req.params.provider, csrfState));
+  res.send(getRedirectUrl(req.params.provider, csrfState));
 };
 
 export const callbackOauthHandler = async (
@@ -29,7 +37,8 @@ export const callbackOauthHandler = async (
   >,
   res: Response,
 ): Promise<void> => {
-  const { code, scopes, state } = req.query;
+  const { code, state } = req.query;
+  const { provider } = req.params;
   const { csrfState } = req.cookies;
 
   if (state !== csrfState) {
@@ -37,16 +46,16 @@ export const callbackOauthHandler = async (
     return;
   }
 
-  const access = await getAccessToken(req.params.provider, code);
+  const access = await getAccessToken(provider, code);
   if (!access.message) {
     req.session.access_token = access.access_token;
-    req.session.provider = req.params.provider;
+    req.session.provider = provider;
     req.session.open_id = access.open_id;
     req.session.expires_in = access.expires_in;
     req.session.refresh_token = access.refresh_token;
     req.session.refresh_expires_in = access.refresh_expires_in;
   }
-  res.json(access);
+  res.redirect(req.session.redirect_client_url as string);
 };
 
 export const refreshTokenHandler = async (req: Request, res: Response): Promise<void> => {
