@@ -8,4 +8,5 @@ export default {
   session: {
     secret: 'secret',
   },
+  origins: 'http://localhost:3200',
 };
